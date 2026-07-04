@@ -16,3 +16,7 @@ Thumbs.db
 dist/
 build/
 *.egg-info/
+
+# Diretorios externos ao projeto (artefatos de planejamento e contexto)
+artifacts/
+context/
