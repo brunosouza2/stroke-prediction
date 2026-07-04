@@ -3,6 +3,7 @@
 venv/
 env/
 __pycache__/
+.pytest_cache/
 *.py[cod]
 *.pyo
 .ipynb_checkpoints/
@@ -15,3 +16,7 @@ Thumbs.db
 dist/
 build/
 *.egg-info/
+
+# Diretorios externos ao projeto (artefatos de planejamento e contexto)
+artifacts/
+context/

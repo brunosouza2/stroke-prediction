@@ -1,0 +1,300 @@
+{
+  "baseline": {
+    "lr": {
+      "model": "Logistic Regression (baseline)",
+      "accuracy": 0.8337,
+      "precision": 0.1341,
+      "recall": 0.44,
+      "f1": 0.2056,
+      "confusion_matrix": [
+        [
+          830,
+          142
+        ],
+        [
+          28,
+          22
+        ]
+      ]
+    },
+    "rf": {
+      "model": "Random Forest (baseline)",
+      "accuracy": 0.9286,
+      "precision": 0.2553,
+      "recall": 0.24,
+      "f1": 0.2474,
+      "confusion_matrix": [
+        [
+          937,
+          35
+        ],
+        [
+          38,
+          12
+        ]
+      ]
+    }
+  },
+  "experiments": [
+    {
+      "name": "EXP-01",
+      "model_type": "lr",
+      "config": {
+        "name": "EXP-01",
+        "model_type": "lr",
+        "population_size": 20,
+        "generations": 30,
+        "mutation_rate": 0.1,
+        "crossover_rate": 0.8
+      },
+      "ga": {
+        "timestamp_utc": "2026-06-28T22:09:23.976409+00:00",
+        "model_type": "lr",
+        "best_fitness": 0.8786015879789075,
+        "best_individual": [
+          67.6702720428037,
+          0,
+          704,
+          1
+        ],
+        "best_params": {
+          "C": 67.6702720428037,
+          "solver": "lbfgs",
+          "max_iter": 704,
+          "class_weight": "balanced"
+        },
+        "history": [
+          {
+            "generation": 1,
+            "best_fitness": 0.8786015879789075,
+            "avg_fitness": 0.8673541287994324,
+            "worst_fitness": 0.8302886599127822
+          },
+          {
+            "generation": 2,
+            "best_fitness": 0.8786015879789075,
+            "avg_fitness": 0.8752004869257641,
+            "worst_fitness": 0.8462332286368733
+          },
+          {
+            "generation": 3,
+            "best_fitness": 0.8786015879789075,
+            "avg_fitness": 0.8769146786048114,
+            "worst_fitness": 0.8471576710905853
+          },
+          {
+            "generation": 4,
+            "best_fitness": 0.8786015879789075,
+            "avg_fitness": 0.8784812617936707,
+            "worst_fitness": 0.878134771003654
+          }
+        ],
+        "stop_reason": "convergence",
+        "config": {
+          "population_size": 20,
+          "generations": 30,
+          "crossover_rate": 0.8,
+          "mutation_rate": 0.1,
+          "elite_size": 2,
+          "tournament_k": 3,
+          "cv": 2,
+          "patience": 4,
+          "min_delta": 0.001,
+          "random_state": 42
+        }
+      },
+      "optimized_metrics": {
+        "model": "EXP-01 Optimized LR",
+        "accuracy": 0.8327,
+        "precision": 0.1288,
+        "recall": 0.42,
+        "f1": 0.1972,
+        "confusion_matrix": [
+          [
+            830,
+            142
+          ],
+          [
+            29,
+            21
+          ]
+        ]
+      },
+      "runtime_seconds": 31.28
+    },
+    {
+      "name": "EXP-02",
+      "model_type": "lr",
+      "config": {
+        "name": "EXP-02",
+        "model_type": "lr",
+        "population_size": 50,
+        "generations": 50,
+        "mutation_rate": 0.2,
+        "crossover_rate": 0.8
+      },
+      "ga": {
+        "timestamp_utc": "2026-06-28T22:10:35.795437+00:00",
+        "model_type": "lr",
+        "best_fitness": 0.8796394873733654,
+        "best_individual": [
+          2.104404966445881,
+          1,
+          702,
+          0
+        ],
+        "best_params": {
+          "C": 2.104404966445881,
+          "solver": "liblinear",
+          "max_iter": 702,
+          "class_weight": null
+        },
+        "history": [
+          {
+            "generation": 1,
+            "best_fitness": 0.8796394873733654,
+            "avg_fitness": 0.8694857609854516,
+            "worst_fitness": 0.8263185432108465
+          },
+          {
+            "generation": 2,
+            "best_fitness": 0.8796394873733654,
+            "avg_fitness": 0.8720141514850955,
+            "worst_fitness": 0.792160363768863
+          },
+          {
+            "generation": 3,
+            "best_fitness": 0.8798366223528591,
+            "avg_fitness": 0.8776867564611592,
+            "worst_fitness": 0.8438049629629871
+          },
+          {
+            "generation": 4,
+            "best_fitness": 0.8798366223528591,
+            "avg_fitness": 0.8734031870331032,
+            "worst_fitness": 0.792160363768863
+          }
+        ],
+        "stop_reason": "convergence",
+        "config": {
+          "population_size": 50,
+          "generations": 50,
+          "crossover_rate": 0.8,
+          "mutation_rate": 0.2,
+          "elite_size": 2,
+          "tournament_k": 3,
+          "cv": 2,
+          "patience": 4,
+          "min_delta": 0.001,
+          "random_state": 42
+        }
+      },
+      "optimized_metrics": {
+        "model": "EXP-02 Optimized LR",
+        "accuracy": 0.8317,
+        "precision": 0.1325,
+        "recall": 0.44,
+        "f1": 0.2037,
+        "confusion_matrix": [
+          [
+            828,
+            144
+          ],
+          [
+            28,
+            22
+          ]
+        ]
+      },
+      "runtime_seconds": 71.45
+    },
+    {
+      "name": "EXP-03",
+      "model_type": "rf",
+      "config": {
+        "name": "EXP-03",
+        "model_type": "rf",
+        "population_size": 30,
+        "generations": 40,
+        "mutation_rate": 0.15,
+        "crossover_rate": 0.7
+      },
+      "ga": {
+        "timestamp_utc": "2026-06-28T22:12:44.651332+00:00",
+        "model_type": "rf",
+        "best_fitness": 0.9578903469851126,
+        "best_individual": [
+          352,
+          13,
+          3,
+          1,
+          0
+        ],
+        "best_params": {
+          "n_estimators": 352,
+          "max_depth": 15,
+          "min_samples_split": 3,
+          "min_samples_leaf": 1,
+          "class_weight": null
+        },
+        "history": [
+          {
+            "generation": 1,
+            "best_fitness": 0.9578903469851126,
+            "avg_fitness": 0.9324647147785713,
+            "worst_fitness": 0.900450490397877
+          },
+          {
+            "generation": 2,
+            "best_fitness": 0.9578903469851126,
+            "avg_fitness": 0.9445447360966973,
+            "worst_fitness": 0.9247094784752437
+          },
+          {
+            "generation": 3,
+            "best_fitness": 0.9578903469851126,
+            "avg_fitness": 0.9500067125837242,
+            "worst_fitness": 0.921559883288019
+          },
+          {
+            "generation": 4,
+            "best_fitness": 0.958041132696371,
+            "avg_fitness": 0.9519403888636334,
+            "worst_fitness": 0.9012030200757077
+          }
+        ],
+        "stop_reason": "convergence",
+        "config": {
+          "population_size": 30,
+          "generations": 40,
+          "crossover_rate": 0.7,
+          "mutation_rate": 0.15,
+          "elite_size": 2,
+          "tournament_k": 3,
+          "cv": 2,
+          "patience": 4,
+          "min_delta": 0.001,
+          "random_state": 42
+        }
+      },
+      "optimized_metrics": {
+        "model": "EXP-03 Optimized RF",
+        "accuracy": 0.9188,
+        "precision": 0.1887,
+        "recall": 0.2,
+        "f1": 0.1942,
+        "confusion_matrix": [
+          [
+            929,
+            43
+          ],
+          [
+            40,
+            10
+          ]
+        ]
+      },
+      "runtime_seconds": 130.66
+    }
+  ]
+}
