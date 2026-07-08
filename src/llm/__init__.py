@@ -1,4 +1,5 @@
 from src.llm.client import DEFAULT_MODEL, configure_client, generate
+from src.llm.interpreter import explain_prediction
 from src.llm.prompts import build_experiment_prompt, build_prediction_prompt
 
 __all__ = [
@@ -7,4 +8,5 @@ __all__ = [
     "generate",
     "build_prediction_prompt",
     "build_experiment_prompt",
+    "explain_prediction",
 ]
