@@ -24,20 +24,20 @@ Nesta fase, aplicamos Algoritmos Genéticos para otimizar os hiperparâmetros e 
 ```
 stroke-prediction-phase2/
 ├── data/
-│   └── download_data.py          # Script para baixar o dataset do Kaggle
+│   └── download_data.py            # Script para baixar o dataset do Kaggle
 ├── src/
-│   ├── preprocessing.py          # Pipeline de pré-processamento (Fase 1 refatorada)
-│   ├── models.py                 # Treinamento, avaliação, save/load, predict
-│   ├── genetic_algorithm/        # Motor do AG (Integrante 1)
-│   └── llm/                      # Integração LLM (Integrante 2)
+│   ├── preprocessing.py            # Pipeline de pré-processamento (Fase 1 refatorada)
+│   ├── models.py                   # Treinamento, avaliação, save/load, predict
+│   ├── genetic_algorithm/          # Motor do AG
+│   └── llm/                        # Integração LLM
 ├── notebooks/
-│   ├── 01_baseline.ipynb         # Reprodução da Fase 1 (linha de base)
-│   ├── 02_genetic_algorithm.ipynb# Experimentos com AG
-│   └── 03_llm_integration.ipynb  # Demonstração da integração LLM
+│   ├── 01_baseline.ipynb           # Reprodução da Fase 1 (linha de base)
+│   ├── 02_genetic_algorithm.ipynb  # Experimentos com AG
+│   └── 03_llm_integration.ipynb    # Demonstração da integração LLM
 ├── results/
-│   ├── logistic_regression.joblib# Modelo LR treinado
-│   ├── random_forest.joblib      # Modelo RF treinado
-│   └── baseline_metrics.json     # Métricas da linha de base
+│   ├── logistic_regression.joblib  # Modelo LR treinado
+│   ├── random_forest.joblib        # Modelo RF treinado
+│   └── baseline_metrics.json       # Métricas da linha de base
 ├── tests/
 ├── docs/
 ├── .env.example
@@ -50,7 +50,7 @@ stroke-prediction-phase2/
 
 - Python 3.10+
 - Conta no Kaggle (para baixar o dataset)
-- API key do Google Gemini (Integrante 2 — LLM integration)
+- API key do Google Gemini
 
 ---
 
@@ -71,7 +71,7 @@ source venv/bin/activate
 # 3. Instale as dependências
 pip install -r requirements.txt
 
-# 4. Configure variáveis de ambiente (Integrante 2)
+# 4. Configure variáveis de ambiente
 copy .env.example .env
 # Edite .env e adicione sua GOOGLE_API_KEY
 ```
@@ -101,8 +101,6 @@ jupyter notebook notebooks/01_baseline.ipynb
 ```
 
 Isso treina os dois modelos baseline e salva em `results/`.
-
-> **Integrante 2:** execute este notebook primeiro para gerar os `.joblib` necessários.
 
 ### 2. Experimentos com Algoritmo Genético
 
@@ -134,12 +132,12 @@ from src.preprocessing import prepare_pipeline
 X_train, X_test, y_train, y_test = prepare_pipeline()
 ```
 
-### Integração com LLM (Integrante 2)
+### Integração com LLM
 
 O módulo `src/llm` usa a API do Google Gemini (`google-genai`) para gerar
 explicações em linguagem natural a partir dos diagnósticos e dos resultados
 do algoritmo genético. Configure `GOOGLE_API_KEY` no `.env` (copie
-`.env.example`); `GEMINI_MODEL` é opcional, com default `gemini-2.5-flash`.
+`.env.example`); Estamos utilizando o modelo `gemini-3.5-flash`.
 
 ```python
 import json
