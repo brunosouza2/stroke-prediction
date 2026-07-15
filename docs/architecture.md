@@ -12,52 +12,101 @@ O sistema combina três camadas:
 2. **Motor de Otimização Genética** — ajuste automático de hiperparâmetros via DEAP
 3. **Camada de Interpretação LLM** — geração de explicações em linguagem natural via Google Gemini
 
+```mermaid
+flowchart TD
+    DS[(Dataset\nKaggle CSV)]
+
+    subgraph PRE["src/preprocessing.py"]
+        P1[load_data]
+        P2[clean_data]
+        P3[encode_features]
+        P4["split_and_balance\n(SMOTE)"]
+        P1 --> P2 --> P3 --> P4
+    end
+
+    subgraph GA["src/genetic_algorithm/"]
+        C[chromosome.py\ndefine espaço de busca]
+        F[fitness.py\nCV estratificado no treino]
+        O[operators.py\nseleção / crossover / mutação]
+        G[ga_optimizer.py\nrun_ga → best_params]
+        C --> F --> O --> G
+    end
+
+    subgraph MOD["src/models.py"]
+        TR["train_lr / train_rf\n(com best_params)"]
+        EV[evaluate_model]
+        TR --> EV
+    end
+
+    subgraph LLM["src/llm/"]
+        PR["prompts.py\n(sem API)"]
+        CL["client.py\nGemini SDK"]
+        IN["interpreter.py\nexplain_prediction\nsummarize_experiment"]
+        EX["evaluation.py\nchecklist determinístico"]
+        PR --> IN --> CL
+        IN --> EX
+    end
+
+    DS --> PRE
+    PRE -->|X_train, y_train| GA
+    PRE -->|X_test, y_test| MOD
+    GA -->|best_params| MOD
+    EV -->|métricas| RES[(results/\nga_summary.json)]
+    RES --> LLM
+    LLM --> TXT["Texto em linguagem\nnatural PT-BR\n+ score de qualidade"]
 ```
-Dataset (Kaggle CSV)
-       |
-       v
-+------------------+
-| src/preprocessing |  load_data / clean_data / encode_features / split_and_balance (SMOTE)
-+------------------+
-       |
-    X_train, y_train                     X_test, y_test
-       |                                      |
-       v                                      |
-+---------------------------+                 |
-|  src/genetic_algorithm/   |                 |
-|                           |                 |
-|  chromosome.py  <-- define espaco de busca  |
-|  fitness.py     <-- CV 2-fold no treino     |
-|  operators.py   <-- selecao/crossover/mut.  |
-|  ga_optimizer.py           |                |
-|    run_ga() --> best_params|                |
-+---------------------------+                 |
-       |                                      |
-       v                                      |
-+------------------+                          |
-|  src/models.py   | <-- treina com best_params
-|                  |                          |
-|  train_lr / rf   |---------> modelo otimizado
-|  evaluate_model  |<---------      |
-+------------------+         y_pred, metricas
-                                    |
-                                    v
-                     results/ga_summary.json
-                                    |
-                                    v
-               +----------------------------+
-               |       src/llm/             |
-               |                            |
-               |  prompts.py  (sem API)     |
-               |  client.py   (Gemini SDK)  |
-               |  interpreter.py            |
-               |    explain_prediction()    |
-               |    summarize_experiment()  |
-               |  evaluation.py (checklist) |
-               +----------------------------+
-                                    |
-                                    v
-                     Texto em linguagem natural (PT-BR)
+
+---
+
+## Fluxo do Algoritmo Genético
+
+```mermaid
+flowchart TD
+    A([Início]) --> B[Criar população inicial aleatória]
+    B --> C[Avaliar fitness de todos os indivíduos\nCV estratificado no X_train]
+    C --> D{Critério de parada?\nmax_gerações ou convergência}
+    D -->|Não| E[Registrar histórico\nbest / avg / worst fitness]
+    E --> F[Selecionar elites\nN melhores copiados direto]
+    F --> G[Torneio → offspring]
+    G --> H[Crossover single-point\nnas par do offspring]
+    H --> I[Mutação por indivíduo\ngaussiana / categórica / inteiro]
+    I --> J[Avaliar apenas indivíduos\ncom fitness inválido]
+    J --> K[nova população = elites + offspring]
+    K --> D
+    D -->|Sim| L[Retornar melhor indivíduo\n+ histórico + config]
+    L --> M[Persistir em\nresults/experiments.json]
+    M --> N([Fim])
+```
+
+---
+
+## Fluxo da Integração LLM
+
+```mermaid
+flowchart LR
+    IN1["patient_data\nprediction\nprobability"]
+    IN2["baseline_metrics\noptimized_metrics\nbest_params"]
+
+    subgraph PROMPTS["prompts.py — sem API"]
+        PP[build_prediction_prompt]
+        EP[build_experiment_prompt]
+    end
+
+    CLI["client.py\nGemini API\ngemini-3.5-flash"]
+
+    subgraph EVAL["evaluation.py — sem API"]
+        R1["mentions_recall"]
+        R2["grounded_in_data"]
+        R3["uses_risk_language"]
+        R4["reasonable_length"]
+    end
+
+    OUT["score: 0.0–1.0\nchecks: dict"]
+
+    IN1 --> PP --> CLI
+    IN2 --> EP --> CLI
+    CLI --> TXT[Texto PT-BR]
+    TXT --> R1 & R2 & R3 & R4 --> OUT
 ```
 
 ---
@@ -156,51 +205,9 @@ fitness = 0.6 * recall_cv + 0.4 * f1_cv
 | Mutacao int categorico | Troca aleatoria entre categorias validas |
 | Mutacao int numerico | Passo gaussiano arredondado, clamp nos limites |
 
-### Loop Principal (`ga_optimizer.py`)
-
-```
-1. Criar populacao inicial aleatoria
-2. Avaliar fitness de todos os individuos (invalidos)
-3. Para cada geracao:
-   a. Registrar historico (best / avg / worst fitness)
-   b. Verificar convergencia (patience + min_delta)
-   c. Selecionar elites (N melhores, copiados direto)
-   d. Torneio -> offspring
-   e. Crossover nos pares do offspring
-   f. Mutacao individual por individual
-   g. Avaliar apenas individuos invalidos (fitness dirty)
-   h. nova populacao = elites + offspring
-4. Retornar melhor individuo + historico + config
-5. Persistir em results/experiments.json (append)
-```
-
-**Decisao:** elitismo garante monotonia do melhor fitness entre geracoes.
-**Criterio de parada:** maximo de geracoes *ou* `patience` geracoes sem melhora `> min_delta`.
-
 ---
 
 ## Modulo 3 — Integracao LLM (`src/llm/`)
-
-### Fluxo de dados
-
-```
-patient_data + prediction + probability
-        |
-        v
-  prompts.build_prediction_prompt()   (sem API — so texto)
-        |
-        v
-  client.generate()  -->  Gemini API (gemini-3.5-flash)
-        |
-        v
-  texto em PT-BR
-        |
-        v
-  evaluation.evaluate_explanation()   (sem API — regras deterministicas)
-        |
-        v
-  {"score": 0.0–1.0, "checks": {...}}
-```
 
 ### Estrategia de Prompt Engineering
 
@@ -250,6 +257,6 @@ Dois templates em `prompts.py`:
 
 - **CV rapido vs. estabilidade:** com `cv=2` e `patience` baixo, os experimentos convergem rapido mas podem ser sensiveis ao `random_state`. Para publicacao, recomenda-se `cv=5` e `patience>=8`.
 - **Populacoes pequenas:** populacoes de 20–50 individuos sao adequadas para o espaco de busca (4–5 genes), mas podem perder diversidade em modelos com mais hiperparametros.
-- **Qualidade do LLM:** o checklist nao garante que o texto seja clinicamente correto — serve como filtro de sanidade automatico. Revisao humana e necessaria antes de uso clínico real.
+- **Qualidade do LLM:** o checklist nao garante que o texto seja clinicamente correto — serve como filtro de sanidade automatico. Revisao humana e necessaria antes de uso clinico real.
 - **Dependencia de API externa:** o modulo LLM requer conexao com a API do Google. Sem `GOOGLE_API_KEY` valida, apenas os testes com mock funcionam.
 - **Dataset desbalanceado:** mesmo com SMOTE, o desbalanceamento original (4.9% positivos) afeta o threshold de decisao. A funcao fitness com penalizacao de recall < 0.30 mitiga isso, mas nao elimina.
