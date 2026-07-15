@@ -24,20 +24,20 @@ Nesta fase, aplicamos Algoritmos Genéticos para otimizar os hiperparâmetros e 
 ```
 stroke-prediction-phase2/
 ├── data/
-│   └── download_data.py          # Script para baixar o dataset do Kaggle
+│   └── download_data.py            # Script para baixar o dataset do Kaggle
 ├── src/
-│   ├── preprocessing.py          # Pipeline de pré-processamento (Fase 1 refatorada)
-│   ├── models.py                 # Treinamento, avaliação, save/load, predict
-│   ├── genetic_algorithm/        # Motor do AG (Integrante 1)
-│   └── llm/                      # Integração LLM (Integrante 2)
+│   ├── preprocessing.py            # Pipeline de pré-processamento (Fase 1 refatorada)
+│   ├── models.py                   # Treinamento, avaliação, save/load, predict
+│   ├── genetic_algorithm/          # Motor do AG
+│   └── llm/                        # Integração LLM
 ├── notebooks/
-│   ├── 01_baseline.ipynb         # Reprodução da Fase 1 (linha de base)
-│   ├── 02_genetic_algorithm.ipynb# Experimentos com AG
-│   └── 03_llm_integration.ipynb  # Demonstração da integração LLM
+│   ├── 01_baseline.ipynb           # Reprodução da Fase 1 (linha de base)
+│   ├── 02_genetic_algorithm.ipynb  # Experimentos com AG
+│   └── 03_llm_integration.ipynb    # Demonstração da integração LLM
 ├── results/
-│   ├── logistic_regression.joblib# Modelo LR treinado
-│   ├── random_forest.joblib      # Modelo RF treinado
-│   └── baseline_metrics.json     # Métricas da linha de base
+│   ├── logistic_regression.joblib  # Modelo LR treinado
+│   ├── random_forest.joblib        # Modelo RF treinado
+│   └── baseline_metrics.json       # Métricas da linha de base
 ├── tests/
 ├── docs/
 ├── .env.example
@@ -50,7 +50,7 @@ stroke-prediction-phase2/
 
 - Python 3.10+
 - Conta no Kaggle (para baixar o dataset)
-- API key do Google Gemini (Integrante 2 — LLM integration)
+- API key do Google Gemini
 
 ---
 
@@ -71,7 +71,7 @@ source venv/bin/activate
 # 3. Instale as dependências
 pip install -r requirements.txt
 
-# 4. Configure variáveis de ambiente (Integrante 2)
+# 4. Configure variáveis de ambiente
 copy .env.example .env
 # Edite .env e adicione sua GOOGLE_API_KEY
 ```
@@ -102,8 +102,6 @@ jupyter notebook notebooks/01_baseline.ipynb
 
 Isso treina os dois modelos baseline e salva em `results/`.
 
-> **Integrante 2:** execute este notebook primeiro para gerar os `.joblib` necessários.
-
 ### 2. Experimentos com Algoritmo Genético
 
 ```bash
@@ -121,7 +119,7 @@ jupyter notebook notebooks/03_llm_integration.ipynb
 ## Usando os módulos em Python
 
 ```python
-# Carregar modelo treinado (usado pelo Integrante 2)
+# Carregar modelo treinado e gerar predições
 from src.models import load_model, predict
 from src.preprocessing import prepare_pipeline
 
@@ -134,6 +132,47 @@ from src.preprocessing import prepare_pipeline
 X_train, X_test, y_train, y_test = prepare_pipeline()
 ```
 
+### Integração com LLM
+
+O módulo `src/llm` usa a API do Google Gemini (`google-genai`) para gerar
+explicações em linguagem natural a partir dos diagnósticos e dos resultados
+do algoritmo genético. Configure `GOOGLE_API_KEY` no `.env` (copie
+`.env.example`); Estamos utilizando o modelo `gemini-3.5-flash`.
+
+```python
+import json
+
+from src.llm import evaluate_explanation, explain_prediction, summarize_experiment
+
+# Explicação individual de uma predição
+patient_data = X_test.iloc[0].to_dict()
+prediction, probability = int(predictions[0]), float(probabilities[0])
+
+explanation = explain_prediction(patient_data, prediction, probability)
+quality = evaluate_explanation(explanation, patient_data)
+print(explanation)
+print(quality["score"], quality["checks"])
+
+# Interpretação agregada de um experimento do algoritmo genético
+ga_summary = json.load(open("results/ga_summary.json"))
+exp = ga_summary["experiments"][0]
+
+summary = summarize_experiment(
+    baseline_metrics=ga_summary["baseline"][exp["model_type"]],
+    optimized_metrics=exp["optimized_metrics"],
+    best_params=exp["ga"]["best_params"],
+)
+```
+
+**Avaliação de qualidade:** `evaluate_explanation(text, source_data)` roda
+um checklist determinístico — sem chamar a API — com 4 regras: grounding
+numérico nos dados de entrada, menção ao recall quando a métrica está
+presente em `source_data`, uso de linguagem de risco/probabilidade (em vez
+de afirmação categórica de diagnóstico) e tamanho razoável da resposta.
+Retorna `{"score": float, "checks": {regra: bool}}`. Ver
+`notebooks/03_llm_integration.ipynb` para uma demonstração completa,
+incluindo as notas de prompt engineering usadas.
+
 ---
 
 ## Integrantes
@@ -141,7 +180,7 @@ X_train, X_test, y_train, y_test = prepare_pipeline()
 | Papel | Responsabilidade |
 |-------|-----------------|
 | Integrante 1 | Algoritmo Genético (TASK-1.1 a 1.6) |
-| Integrante 2 | Integração LLM (TASK-2.1 a 2.5) |
+| Integrante 2 | Integração LLM (TASK-2.1 a 2.8) |
 | Integrante 3 | Integração, testes, docs e relatório final (TASK-3.1 a 3.5) |
 
 ---
@@ -153,7 +192,7 @@ X_train, X_test, y_train, y_test = prepare_pipeline()
 | scikit-learn | Modelos de ML |
 | imbalanced-learn | SMOTE |
 | deap | Algoritmo Genético |
-| google-generativeai | LLM (Gemini) |
+| google-genai | LLM (Gemini) |
 | pandas / numpy | Manipulação de dados |
 | joblib | Persistência de modelos |
 | pytest | Testes automatizados |
